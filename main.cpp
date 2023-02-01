@@ -4,6 +4,7 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
+#include <iomanip>
 
 using namespace std;
 
@@ -33,28 +34,37 @@ std::vector<size_t> findItems(std::vector<pair<uint64_t, uint32_t>> const &v, ui
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(nullptr);
     vector<pair<uint64_t, uint32_t> > memref;
     vector<pair<uint64_t, float> > result;
-    memref.reserve(20000000);
-    result.reserve(20000000);
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
+    cout << std::setprecision(1); //Always show 2 decimal places
+    cout << std::fixed; //Disable scientific notation for large numbers
+    cerr << fixed << showpoint << setprecision(1);
+    memref.reserve(400000000);
+    result.reserve(400000000);
     ifstream infile;
-    infile.open("te.txt");
+    infile.open("te");
     string tmp;
     uint64_t memadd;
-    uint8_t bynum;
-    uint32_t instr_n;
+    int bynum;
+    uint64_t instr_n;
     while (infile >> tmp) {
-        infile >> instr_n >> tmp >> tmp >> tmp >> bynum >> tmp >> tmp >> hex >> memadd >> tmp;
+        infile >> dec >> instr_n;
+        infile >> tmp >> tmp >> tmp;
+        if (tmp[0] == '<') {
+            while (tmp.back() != '>') infile >> tmp;
+            continue;
+        }
+        infile >> bynum >> tmp >> tmp >> hex >> memadd >> tmp;
         while (bynum-- > 0) {
             memref.emplace_back(bynum + memadd, instr_n);
         }
-        if (tmp[0] == 'b') {
+        if (tmp == "by") {
             infile >> tmp >> tmp;
             continue;
         }
-        if (tmp[0] == 'c') {
+        if (tmp == "conditional" || tmp == "indirect") {
             infile >> tmp;
             continue;
         }
@@ -70,6 +80,9 @@ int main() {
         auto newend = remove_if(memref.begin(), memref.end(), EqualCmp(memref[0].first));
         memref.erase(newend, memref.end());
     }
-    cout << "end";
+    cout << setw(6) << "address" << setw(5) << "reuse distance\n";
+    for (auto i: result) {
+        cout << setw(30) << i.first << "  " << setw(5) << i.second << "\n";
+    }
     return 0;
 }
